@@ -7,6 +7,8 @@ namespace cslox.AST
     {
         public string Print(Expr expr)
         {
+            if (expr == null)
+                return "nil";
             return expr.Accept(this);
         }
 

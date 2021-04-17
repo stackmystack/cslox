@@ -2,8 +2,16 @@ using System;
 
 namespace cslox
 {
-    class Error
+    static class Error
     {
+        public static void Log(Token token, string message)
+        {
+            if (token.Type == TokenType.EOF)
+                Report(token.Line, " at end", message);
+            else
+                Report(token.Line, " at '" + token.Lexeme + "'", message);
+        }
+
         public static void Log(int line, string message)
         {
             Report(line, "", message);

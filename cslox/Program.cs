@@ -41,10 +41,13 @@ namespace cslox
             var scanner = new Scanner(program);
 
             scanner.ScanTokens();
-            foreach (var token in scanner.Tokens)
-            {
-                Console.WriteLine(token);
-            }
+
+            var parser = new Parser(scanner.Tokens);
+            var expr = parser.Parse();
+
+            if (hadError) return;
+
+            Console.WriteLine(new ASTPrinter().Print(expr));
         }
 
         static void Main(string[] args)
