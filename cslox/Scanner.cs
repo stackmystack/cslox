@@ -9,7 +9,7 @@ namespace cslox
         private int current;
         private int line;
 
-        private static Dictionary<string, TokenType> keywords = new()
+        private static readonly Dictionary<string, TokenType> keywords = new()
         {
             { "and", TokenType.AND },
             { "class", TokenType.CLASS },
@@ -127,7 +127,7 @@ namespace cslox
             AddToken(type);
         }
 
-        private bool IsAlpha(char c)
+        private static bool IsAlpha(char c)
         {
             return (c >= 'a' && c <= 'z') || (c >= 'A' && c <= 'Z') || c == '_';
         }
@@ -150,7 +150,7 @@ namespace cslox
             AddToken(TokenType.NUMBER, Double.Parse(Source[start..current]));
         }
 
-        private bool IsDigit(char c)
+        private static bool IsDigit(char c)
         {
             return c >= '0' && c <= '9';
         }

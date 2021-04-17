@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.IO;
 using System.Text;
+using cslox.AST;
 
 namespace cslox
 {
@@ -44,7 +45,7 @@ namespace cslox
             {
                 Console.WriteLine(token);
             }
-        } 
+        }
 
         static void Main(string[] args)
         {
