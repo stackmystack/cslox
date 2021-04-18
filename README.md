@@ -20,13 +20,13 @@ nowadays so it should run on any OS supporting it. I am using it on Windows.
 To run the repl:
 
 ```bash
-dotnet run
+dotnet run --project cslox
 ```
 
 To run a script:
 
 ```bash
-dotnet run -- lox/example.lox
+dotnet run --project cslox -- lox/example.lox
 ```
 
 ### Standalone
