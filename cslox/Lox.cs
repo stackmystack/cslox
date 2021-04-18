@@ -6,14 +6,24 @@ using cslox.AST;
 
 namespace cslox
 {
-    class Program
+    class Lox
     {
-        static bool hadError = false;
+        private static bool hadError = false;
+        private static bool hadRuntimeError = false;
+
+        private static Interpreter interpreter = new();
+
         static void PrintUsage()
         {
             Console.WriteLine("Usage:");
             Console.WriteLine("  cslox             | runs the repl");
             Console.WriteLine("  cslox [FILE]      | runs a file");
+        }
+
+        public static void RuntimeError(RuntimeError e)
+        {
+            Console.Error.WriteLine(e.Message + "\n [line " + e.Token + "]");
+            hadRuntimeError = true;
         }
 
         static void RunFile(string path)
@@ -23,6 +33,8 @@ namespace cslox
 
             if (hadError)
                 Environment.Exit(SysExitCode.DATAERR);
+            if (hadRuntimeError)
+                Environment.Exit(SysExitCode.SOFTWARE);
         }
 
         static void RunREPL()
@@ -47,7 +59,7 @@ namespace cslox
 
             if (hadError) return;
 
-            Console.WriteLine(new ASTPrinter().Print(expr));
+            interpreter.Interpret(expr);
         }
 
         static void Main(string[] args)
