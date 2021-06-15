@@ -1,8 +1,6 @@
 ﻿using System;
-using System.Collections.Generic;
 using System.IO;
 using System.Text;
-using cslox.AST;
 
 namespace cslox
 {
@@ -55,11 +53,11 @@ namespace cslox
       scanner.ScanTokens();
 
       var parser = new Parser(scanner.Tokens);
-      var statements = parser.Parse();
+      var expr = parser.Parse();
 
       if (hadError) return;
 
-      interpreter.Interpret(statements);
+      interpreter.Interpret(expr);
     }
 
     static void Main(string[] args)
