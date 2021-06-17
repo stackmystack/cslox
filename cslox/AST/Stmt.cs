@@ -6,6 +6,7 @@ namespace cslox.AST
         {
             R VisitExprStmtStmt(ExprStmt stmt);
             R VisitPrintStmtStmt(PrintStmt stmt);
+            R VisitVarStmtStmt(VarStmt stmt);
         }
         public class ExprStmt : Stmt
         {
@@ -34,6 +35,22 @@ namespace cslox.AST
             }
 
             public Expr Expression { get; }
+        }
+        public class VarStmt : Stmt
+        {
+            public VarStmt(Token name, Expr initializer)
+            {
+                Name = name;
+                Initializer = initializer;
+            }
+
+            public override R Accept<R>(IVisitor<R> visitor)
+            {
+                 return visitor.VisitVarStmtStmt(this);
+            }
+
+            public Token Name { get; }
+            public Expr Initializer { get; }
         }
 
     public abstract R Accept<R>(IVisitor<R> visitor);

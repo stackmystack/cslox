@@ -8,7 +8,7 @@ namespace cslox
   {
     public class ParseError : Exception { }
 
-    private List<Token> tokens;
+    private readonly List<Token> tokens;
     private int current = 0;
 
     public Parser(List<Token> tokens)
@@ -22,10 +22,42 @@ namespace cslox
 
       while (!IsAtEnd())
       {
-        statements.Add(Statement());
+        statements.Add(Declaration());
       }
 
       return statements;
+    }
+
+    private Stmt Declaration()
+    {
+      try
+      {
+        if (Match(TokenType.VAR))
+        {
+          return VarDeclaration();
+        }
+
+        return Statement();
+      }
+      catch (ParseError)
+      {
+        Sync();
+        return null;
+      }
+    }
+
+    private Stmt VarDeclaration()
+    {
+      var name = Consume(TokenType.IDENTIFIER, "Expect variable name.");
+
+      Expr initializer = null;
+      if (Match(TokenType.EQUAL))
+      {
+        initializer = Expression();
+      }
+
+      Consume(TokenType.SEMICOLON, "Expect ';' after variable declaration.");
+      return new Stmt.VarStmt(name, initializer);
     }
 
     private Stmt Statement()
@@ -51,7 +83,28 @@ namespace cslox
     }
     private Expr Expression()
     {
-      return Equality();
+      return Assignment();
+    }
+
+    private Expr Assignment()
+    {
+      Expr expr = Equality();
+
+      if (Match(TokenType.EQUAL))
+      {
+        var equals = Previous();
+        var value = Assignment();
+
+        if (expr is Expr.Variable variable)
+        {
+          var name = variable.Name;
+          return new Expr.Assign(name, value);
+        }
+
+        Err(equals, "Invalid assignment target.");
+      }
+
+      return expr;
     }
 
     private Expr Equality()
@@ -138,6 +191,11 @@ namespace cslox
         return new Expr.Literal(Previous().Literal);
       }
 
+      if (Match(TokenType.IDENTIFIER))
+      {
+        return new Expr.Variable(Previous());
+      }
+
       if (Match(TokenType.PAREN_LEFT))
       {
         var expr = Expression();
@@ -156,7 +214,7 @@ namespace cslox
       throw Err(Peek(), message);
     }
 
-    private ParseError Err(Token token, string message)
+    private static ParseError Err(Token token, string message)
     {
       Error.Log(token, message);
       return new ParseError();

@@ -22,15 +22,18 @@ namespace GenAST
       var outputDir = args[0];
 
       DefineAST(outputDir, "Expr", new string[] {
+                    "Assign   : Token name, Expr value",
                     "Binary   : Expr left, Token op, Expr right",
                     "Grouping : Expr expression",
                     "Literal  : object value",
-                    "Unary    : Token op, Expr right"
+                    "Unary    : Token op, Expr right",
+                    "Variable : Token name",
                 });
 
       DefineAST(outputDir, "Stmt", new string[] {
                 "ExprStmt  : Expr expression",
                 "PrintStmt : Expr expression",
+                "VarStmt   : Token name, Expr initializer",
             });
     }
 

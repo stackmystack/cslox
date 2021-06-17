@@ -9,7 +9,7 @@ namespace cslox
     private static bool hadError = false;
     private static bool hadRuntimeError = false;
 
-    private static Interpreter interpreter = new();
+    private static readonly Interpreter interpreter = new();
 
     static void PrintUsage()
     {

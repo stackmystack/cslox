@@ -6,6 +6,7 @@ namespace cslox
 {
   public class Interpreter : Expr.IVisitor<object>, Stmt.IVisitor<object>
   {
+    private Env environment = new();
 
     public void Interpret(List<Stmt> statements)
     {
@@ -44,6 +45,13 @@ namespace cslox
       }
 
       return value.ToString();
+    }
+
+    public object VisitAssignExpr(Expr.Assign expr)
+    {
+      object value = Eval(expr.Value);
+      environment.Assign(expr.Name, value);
+      return value;
     }
 
     public object VisitBinaryExpr(Expr.Binary expr)
@@ -111,6 +119,11 @@ namespace cslox
       }
     }
 
+    public object VisitVariableExpr(Expr.Variable expr)
+    {
+      return environment.Get(expr.Name);
+    }
+
     public object VisitExprStmtStmt(Stmt.ExprStmt stmt)
     {
       Eval(stmt.Expression);
@@ -121,6 +134,19 @@ namespace cslox
     {
       object value = Eval(stmt.Expression);
       Console.WriteLine(Stringify(value));
+      return null;
+    }
+
+    public object VisitVarStmtStmt(Stmt.VarStmt stmt)
+    {
+      object value = null;
+
+      if (stmt.Initializer != null)
+      {
+        value = Eval(stmt.Initializer);
+      }
+
+      environment.Define(stmt.Name.Lexeme, value);
       return null;
     }
 
