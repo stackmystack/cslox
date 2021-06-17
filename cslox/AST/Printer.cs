@@ -27,6 +27,11 @@ namespace cslox.AST
       return Paren("group", new Expr[] { expr.Expression });
     }
 
+    public string VisitLogicalExpr(Expr.Logical expr)
+    {
+      return Paren(expr.Op.ToString(), new Expr[] { expr.Left, expr.Right });
+    }
+
     public string VisitLiteralExpr(Expr.Literal expr)
     {
       if (expr.Value == null) return "nil";

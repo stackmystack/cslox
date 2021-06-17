@@ -7,56 +7,76 @@ namespace cslox.AST
     {
         public interface IVisitor<R>
         {
-            R VisitBlockStmtStmt(BlockStmt stmt);
-            R VisitExprStmtStmt(ExprStmt stmt);
-            R VisitPrintStmtStmt(PrintStmt stmt);
-            R VisitVarStmtStmt(VarStmt stmt);
+            R VisitBlockStmt(Block stmt);
+            R VisitExpressionStmt(Expression stmt);
+            R VisitIfStmt(If stmt);
+            R VisitPrintStmt(Print stmt);
+            R VisitVarStmt(Var stmt);
+            R VisitWhileStmt(While stmt);
         }
-        public class BlockStmt : Stmt
+        public class Block : Stmt
         {
-            public BlockStmt(List<Stmt> statements)
+            public Block(List<Stmt> statements)
             {
                 Statements = statements;
             }
 
             public override R Accept<R>(IVisitor<R> visitor)
             {
-                 return visitor.VisitBlockStmtStmt(this);
+                 return visitor.VisitBlockStmt(this);
             }
 
             public List<Stmt> Statements { get; }
         }
-        public class ExprStmt : Stmt
+        public class Expression : Stmt
         {
-            public ExprStmt(Expr expression)
+            public Expression(Expr expr)
             {
-                Expression = expression;
+                Expr = expr;
             }
 
             public override R Accept<R>(IVisitor<R> visitor)
             {
-                 return visitor.VisitExprStmtStmt(this);
+                 return visitor.VisitExpressionStmt(this);
             }
 
-            public Expr Expression { get; }
+            public Expr Expr { get; }
         }
-        public class PrintStmt : Stmt
+        public class If : Stmt
         {
-            public PrintStmt(Expr expression)
+            public If(Expr condition, Stmt thenBranch, Stmt elseBranch)
             {
-                Expression = expression;
+                Condition = condition;
+                ThenBranch = thenBranch;
+                ElseBranch = elseBranch;
             }
 
             public override R Accept<R>(IVisitor<R> visitor)
             {
-                 return visitor.VisitPrintStmtStmt(this);
+                 return visitor.VisitIfStmt(this);
             }
 
-            public Expr Expression { get; }
+            public Expr Condition { get; }
+            public Stmt ThenBranch { get; }
+            public Stmt ElseBranch { get; }
         }
-        public class VarStmt : Stmt
+        public class Print : Stmt
         {
-            public VarStmt(Token name, Expr initializer)
+            public Print(Expr expr)
+            {
+                Expr = expr;
+            }
+
+            public override R Accept<R>(IVisitor<R> visitor)
+            {
+                 return visitor.VisitPrintStmt(this);
+            }
+
+            public Expr Expr { get; }
+        }
+        public class Var : Stmt
+        {
+            public Var(Token name, Expr initializer)
             {
                 Name = name;
                 Initializer = initializer;
@@ -64,11 +84,27 @@ namespace cslox.AST
 
             public override R Accept<R>(IVisitor<R> visitor)
             {
-                 return visitor.VisitVarStmtStmt(this);
+                 return visitor.VisitVarStmt(this);
             }
 
             public Token Name { get; }
             public Expr Initializer { get; }
+        }
+        public class While : Stmt
+        {
+            public While(Expr condition, Stmt body)
+            {
+                Condition = condition;
+                Body = body;
+            }
+
+            public override R Accept<R>(IVisitor<R> visitor)
+            {
+                 return visitor.VisitWhileStmt(this);
+            }
+
+            public Expr Condition { get; }
+            public Stmt Body { get; }
         }
 
     public abstract R Accept<R>(IVisitor<R> visitor);

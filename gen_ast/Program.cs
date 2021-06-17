@@ -26,15 +26,18 @@ namespace GenAST
                     "Binary   : Expr left, Token op, Expr right",
                     "Grouping : Expr expression",
                     "Literal  : object value",
+                    "Logical  : Expr left, Token op, Expr right",
                     "Unary    : Token op, Expr right",
                     "Variable : Token name",
                 });
 
       DefineAST(outputDir, "Stmt", new string[] {
-                "BlockStmt : List<Stmt> statements",
-                "ExprStmt  : Expr expression",
-                "PrintStmt : Expr expression",
-                "VarStmt   : Token name, Expr initializer",
+                "Block      : List<Stmt> statements",
+                "Expression : Expr expr",
+                "If         : Expr condition, Stmt thenBranch, Stmt elseBranch",
+                "Print      : Expr expr",
+                "Var        : Token name, Expr initializer",
+                "While      : Expr condition, Stmt body",
             });
     }
 

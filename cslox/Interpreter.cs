@@ -101,6 +101,24 @@ namespace cslox
       return Eval(expr.Expression);
     }
 
+    public object VisitLogicalExpr(Expr.Logical expr)
+    {
+      var left = Eval(expr.Left);
+
+      if (expr.Op.Type == TokenType.OR)
+      {
+        if (IsTruthy(left))
+          return left;
+      }
+      else
+      {
+        if (!IsTruthy(left))
+          return left;
+      }
+
+      return Eval(expr.Right);
+    }
+
     public object VisitLiteralExpr(Expr.Literal expr)
     {
       return expr.Value;
@@ -125,8 +143,7 @@ namespace cslox
       return environment.Get(expr.Name);
     }
 
-
-    public object VisitBlockStmtStmt(Stmt.BlockStmt stmt)
+    public object VisitBlockStmt(Stmt.Block stmt)
     {
       ExecuteBlock(stmt.Statements, new Env(environment));
       return null;
@@ -151,20 +168,44 @@ namespace cslox
       }
     }
 
-    public object VisitExprStmtStmt(Stmt.ExprStmt stmt)
+    public object VisitExpressionStmt(Stmt.Expression stmt)
     {
-      Eval(stmt.Expression);
+      Eval(stmt.Expr);
       return null;
     }
 
-    public object VisitPrintStmtStmt(Stmt.PrintStmt stmt)
+    public object VisitIfStmt(Stmt.If stmt)
     {
-      object value = Eval(stmt.Expression);
+      if (IsTruthy(Eval(stmt.Condition)))
+      {
+        Execute(stmt.ThenBranch);
+      }
+      else if (stmt.ElseBranch != null)
+      {
+        Execute(stmt.ElseBranch);
+      }
+
+      return null;
+    }
+
+    public object VisitPrintStmt(Stmt.Print stmt)
+    {
+      object value = Eval(stmt.Expr);
       Console.WriteLine(Stringify(value));
       return null;
     }
 
-    public object VisitVarStmtStmt(Stmt.VarStmt stmt)
+    public object VisitWhileStmt(Stmt.While stmt)
+    {
+      while (IsTruthy(Eval(stmt.Condition)))
+      {
+        Execute(stmt.Body);
+      }
+
+      return null;
+    }
+
+    public object VisitVarStmt(Stmt.Var stmt)
     {
       object value = null;
 
@@ -177,13 +218,13 @@ namespace cslox
       return null;
     }
 
-    private void CheckNumberOperand(Token op, object right)
+    private static void CheckNumberOperand(Token op, object right)
     {
       if (right is double) return;
       throw new RuntimeError(op, "Operand must be a number.");
     }
 
-    private void CheckNumberOperands(Token op, object left, object right)
+    private static void CheckNumberOperands(Token op, object left, object right)
     {
       if (right is double && right is double) return;
       throw new RuntimeError(op, "Operands must be a number.");
@@ -194,7 +235,7 @@ namespace cslox
       return expression.Accept(this);
     }
 
-    private bool IsTruthy(object o)
+    private static bool IsTruthy(object o)
     {
       if (o == null) return false;
       if (o is bool boolean) return boolean;
@@ -202,7 +243,7 @@ namespace cslox
       return true;
     }
 
-    private bool IsEqual(object left, object right)
+    private static bool IsEqual(object left, object right)
     {
       if (left == null && right == null) return true;
       if (left == null) return false;

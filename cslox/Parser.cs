@@ -57,24 +57,106 @@ namespace cslox
       }
 
       Consume(TokenType.SEMICOLON, "Expect ';' after variable declaration.");
-      return new Stmt.VarStmt(name, initializer);
+      return new Stmt.Var(name, initializer);
     }
 
     private Stmt Statement()
     {
+      if (Match(TokenType.FOR))
+        return ForStatement();
+      if (Match(TokenType.IF))
+        return IfStatement();
       if (Match(TokenType.PRINT))
         return PrintStatement();
+      if (Match(TokenType.WHILE))
+        return WhileStatement();
       if (Match(TokenType.BRACE_LEFT))
-        return new Stmt.BlockStmt(Block());
+        return new Stmt.Block(Block());
 
       return ExpressionStatement();
+    }
+
+    private Stmt ForStatement()
+    {
+      Consume(TokenType.PAREN_LEFT, "Expect '(' after for.");
+
+      Stmt initializer;
+      if (Match(TokenType.SEMICOLON))
+      {
+        initializer = null;
+      }
+      else if (Match(TokenType.VAR))
+      {
+        initializer = VarDeclaration();
+      }
+      else
+      {
+        initializer = ExpressionStatement();
+      }
+
+      Expr condition = null;
+      if (!Check(TokenType.SEMICOLON))
+      {
+        condition = Expression();
+      }
+      Consume(TokenType.SEMICOLON, "Expect ';' after loop condition.");
+
+      Expr increment = null;
+      if (!Check(TokenType.PAREN_RIGHT))
+      {
+        increment = Expression();
+      }
+      Consume(TokenType.PAREN_RIGHT, "Expect ')' after for clauses.");
+
+      Stmt body = Statement();
+      if (increment != null)
+      {
+        body = new Stmt.Block(new List<Stmt>() { body, new Stmt.Expression(increment) });
+      }
+
+      if (condition == null)
+        condition = new Expr.Literal(true);
+
+      body = new Stmt.While(condition, body);
+
+      if (initializer != null)
+      {
+        body = new Stmt.Block(new List<Stmt>() { initializer, body });
+      }
+
+      return body;
+    }
+
+    private Stmt IfStatement()
+    {
+      Consume(TokenType.PAREN_LEFT, "Expect '(' after 'if'.");
+      var condition = Expression();
+      Consume(TokenType.PAREN_RIGHT, "Expect ')' after 'if'.");
+
+      Stmt thenBranch = Statement();
+      Stmt elseBranch = null;
+
+      if (Match(TokenType.ELSE))
+        elseBranch = Statement();
+
+      return new Stmt.If(condition, thenBranch, elseBranch);
     }
 
     private Stmt PrintStatement()
     {
       Expr value = Expression();
       Consume(TokenType.SEMICOLON, "Expect ';' after value.");
-      return new Stmt.PrintStmt(value);
+      return new Stmt.Print(value);
+    }
+
+    private Stmt WhileStatement()
+    {
+      Consume(TokenType.PAREN_LEFT, "Expect '(' after 'while'.");
+      var condition = Expression();
+      Consume(TokenType.PAREN_RIGHT, "Expect '(' after 'while'.");
+      var body = Statement();
+
+      return new Stmt.While(condition, body);
     }
 
     private List<Stmt> Block()
@@ -94,7 +176,7 @@ namespace cslox
     {
       Expr expr = Expression();
       Consume(TokenType.SEMICOLON, "Expect ';' after expression.");
-      return new Stmt.ExprStmt(expr);
+      return new Stmt.Expression(expr);
     }
     private Expr Expression()
     {
@@ -103,7 +185,7 @@ namespace cslox
 
     private Expr Assignment()
     {
-      Expr expr = Equality();
+      var expr = Or();
 
       if (Match(TokenType.EQUAL))
       {
@@ -117,6 +199,36 @@ namespace cslox
         }
 
         Err(equals, "Invalid assignment target.");
+      }
+
+      return expr;
+    }
+
+    private Expr Or()
+    {
+      var expr = And();
+
+      while (Match(TokenType.OR))
+      {
+        var op = Previous();
+        var right = And();
+
+        expr = new Expr.Logical(expr, op, right);
+      }
+
+      return expr;
+    }
+
+    private Expr And()
+    {
+      var expr = Equality();
+
+      while (Match(TokenType.AND))
+      {
+        var op = Previous();
+        var right = Equality();
+
+        expr = new Expr.Logical(expr, op, right);
       }
 
       return expr;
