@@ -1,12 +1,30 @@
+using System;
+using System.Collections.Generic;
+
 namespace cslox.AST
 {
     public abstract class Stmt
     {
         public interface IVisitor<R>
         {
+            R VisitBlockStmtStmt(BlockStmt stmt);
             R VisitExprStmtStmt(ExprStmt stmt);
             R VisitPrintStmtStmt(PrintStmt stmt);
             R VisitVarStmtStmt(VarStmt stmt);
+        }
+        public class BlockStmt : Stmt
+        {
+            public BlockStmt(List<Stmt> statements)
+            {
+                Statements = statements;
+            }
+
+            public override R Accept<R>(IVisitor<R> visitor)
+            {
+                 return visitor.VisitBlockStmtStmt(this);
+            }
+
+            public List<Stmt> Statements { get; }
         }
         public class ExprStmt : Stmt
         {

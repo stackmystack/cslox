@@ -1,3 +1,6 @@
+using System;
+using System.Collections.Generic;
+
 namespace cslox.AST
 {
     public abstract class Expr

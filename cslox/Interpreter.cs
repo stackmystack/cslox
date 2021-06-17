@@ -14,7 +14,8 @@ namespace cslox
       {
         foreach (Stmt statement in statements)
         {
-          Execute(statement);
+          if (statement != null)
+            Execute(statement);
         }
       }
       catch (RuntimeError e)
@@ -122,6 +123,32 @@ namespace cslox
     public object VisitVariableExpr(Expr.Variable expr)
     {
       return environment.Get(expr.Name);
+    }
+
+
+    public object VisitBlockStmtStmt(Stmt.BlockStmt stmt)
+    {
+      ExecuteBlock(stmt.Statements, new Env(environment));
+      return null;
+    }
+
+    private void ExecuteBlock(List<Stmt> statements, Env environment)
+    {
+      var previous = this.environment;
+
+      try
+      {
+        this.environment = environment;
+
+        foreach (Stmt statement in statements)
+        {
+          Execute(statement);
+        }
+      }
+      finally
+      {
+        this.environment = previous;
+      }
     }
 
     public object VisitExprStmtStmt(Stmt.ExprStmt stmt)

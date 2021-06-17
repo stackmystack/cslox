@@ -31,6 +31,7 @@ namespace GenAST
                 });
 
       DefineAST(outputDir, "Stmt", new string[] {
+                "BlockStmt : List<Stmt> statements",
                 "ExprStmt  : Expr expression",
                 "PrintStmt : Expr expression",
                 "VarStmt   : Token name, Expr initializer",
@@ -42,6 +43,9 @@ namespace GenAST
       var path = Path.Combine(outputDir, baseName + ".cs");
 
       using StreamWriter sw = new(path);
+      sw.WriteLine("using System;");
+      sw.WriteLine("using System.Collections.Generic;");
+      sw.WriteLine();
       sw.WriteLine("namespace cslox.AST");
       sw.WriteLine("{");
       sw.WriteLine("    public abstract class " + baseName);

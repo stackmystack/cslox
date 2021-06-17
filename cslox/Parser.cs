@@ -64,6 +64,8 @@ namespace cslox
     {
       if (Match(TokenType.PRINT))
         return PrintStatement();
+      if (Match(TokenType.BRACE_LEFT))
+        return new Stmt.BlockStmt(Block());
 
       return ExpressionStatement();
     }
@@ -73,6 +75,19 @@ namespace cslox
       Expr value = Expression();
       Consume(TokenType.SEMICOLON, "Expect ';' after value.");
       return new Stmt.PrintStmt(value);
+    }
+
+    private List<Stmt> Block()
+    {
+      List<Stmt> statements = new();
+
+      while (!Check(TokenType.BRACE_RIGHT) && !IsAtEnd())
+      {
+        statements.Add(Declaration());
+      }
+
+      Consume(TokenType.BRACE_RIGHT, "Expect '}' after block.");
+      return statements;
     }
 
     private Stmt ExpressionStatement()
