@@ -1,4 +1,5 @@
 using System;
+using System.Collections.Generic;
 using System.Text;
 
 namespace cslox.AST
@@ -14,22 +15,37 @@ namespace cslox.AST
 
     public string VisitAssignExpr(Expr.Assign expr)
     {
-      return Paren(expr.Name.Lexeme, new Expr[] { expr.Value });
+      return Paren(expr.Name.Lexeme, new() { expr.Value });
     }
 
     public string VisitBinaryExpr(Expr.Binary expr)
     {
-      return Paren(expr.Op.Lexeme, new Expr[] { expr.Left, expr.Right });
+      return Paren(expr.Op.Lexeme, new() { expr.Left, expr.Right });
+    }
+
+    public string VisitCallExpr(Expr.Call expr)
+    {
+      var list = new List<Expr>(capacity: 1 + expr.Arguments.Count)
+      {
+        expr.Callee
+      };
+
+      foreach (var arg in expr.Arguments)
+      {
+        list.Add(arg);
+      }
+
+      return Paren("fn", list);
     }
 
     public string VisitGroupingExpr(Expr.Grouping expr)
     {
-      return Paren("group", new Expr[] { expr.Expression });
+      return Paren("group", new() { expr.Expression });
     }
 
     public string VisitLogicalExpr(Expr.Logical expr)
     {
-      return Paren(expr.Op.ToString(), new Expr[] { expr.Left, expr.Right });
+      return Paren(expr.Op.ToString(), new() { expr.Left, expr.Right });
     }
 
     public string VisitLiteralExpr(Expr.Literal expr)
@@ -40,15 +56,15 @@ namespace cslox.AST
 
     public string VisitUnaryExpr(Expr.Unary expr)
     {
-      return Paren(expr.Op.Lexeme, new Expr[] { expr.Right });
+      return Paren(expr.Op.Lexeme, new() { expr.Right });
     }
 
     public string VisitVariableExpr(Expr.Variable expr)
     {
-      return Paren(expr.Name.Lexeme, Array.Empty<Expr>());
+      return Paren(expr.Name.Lexeme, new());
     }
 
-    private string Paren(string name, Expr[] exprs)
+    private string Paren(string name, List<Expr> exprs)
     {
       var sb = new StringBuilder();
 

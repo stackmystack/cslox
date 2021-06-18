@@ -9,6 +9,7 @@ namespace cslox.AST
         {
             R VisitAssignExpr(Assign expr);
             R VisitBinaryExpr(Binary expr);
+            R VisitCallExpr(Call expr);
             R VisitGroupingExpr(Grouping expr);
             R VisitLiteralExpr(Literal expr);
             R VisitLogicalExpr(Logical expr);
@@ -48,6 +49,24 @@ namespace cslox.AST
             public Expr Left { get; }
             public Token Op { get; }
             public Expr Right { get; }
+        }
+        public class Call : Expr
+        {
+            public Call(Expr callee, Token paren, List<Expr> arguments)
+            {
+                Callee = callee;
+                Paren = paren;
+                Arguments = arguments;
+            }
+
+            public override R Accept<R>(IVisitor<R> visitor)
+            {
+                 return visitor.VisitCallExpr(this);
+            }
+
+            public Expr Callee { get; }
+            public Token Paren { get; }
+            public List<Expr> Arguments { get; }
         }
         public class Grouping : Expr
         {

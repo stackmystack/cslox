@@ -6,17 +6,39 @@ namespace cslox
 {
   public class Interpreter : Expr.IVisitor<object>, Stmt.IVisitor<object>
   {
-    private Env environment = new();
+    public readonly Env Globals;
+    private Env Environment;
+
+    private class Clock : ICallable
+    {
+      public int Arity() { return 0; }
+
+      public object Call(Interpreter interpreter, List<object> args)
+      {
+        return DateTime.Now.Ticks / TimeSpan.TicksPerMillisecond / 1000.0;
+      }
+
+      public override string ToString()
+      {
+        return "<native fn>";
+      }
+    }
+
+    public Interpreter()
+    {
+      Globals = new();
+      Environment = Globals;
+
+      Globals.Define("clock", new Clock());
+    }
 
     public void Interpret(List<Stmt> statements)
     {
       try
       {
         foreach (Stmt statement in statements)
-        {
           if (statement != null)
             Execute(statement);
-        }
       }
       catch (RuntimeError e)
       {
@@ -29,7 +51,7 @@ namespace cslox
       stmt.Accept(this);
     }
 
-    private string Stringify(object value)
+    private static string Stringify(object value)
     {
       if (value == null) return "nil";
 
@@ -38,9 +60,7 @@ namespace cslox
         var text = value.ToString();
 
         if (text.EndsWith(".0"))
-        {
           text = text[0..(text.Length - 2)];
-        }
 
         return text;
       }
@@ -51,7 +71,7 @@ namespace cslox
     public object VisitAssignExpr(Expr.Assign expr)
     {
       object value = Eval(expr.Value);
-      environment.Assign(expr.Name, value);
+      Environment.Assign(expr.Name, value);
       return value;
     }
 
@@ -94,6 +114,24 @@ namespace cslox
         default:
           return null;
       }
+    }
+
+    public object VisitCallExpr(Expr.Call expr)
+    {
+      var callee = Eval(expr.Callee);
+
+      if (callee is not ICallable)
+        throw new RuntimeError(expr.Paren, "Can only call functions and classes.");
+
+      var fn = callee as ICallable;
+      List<object> args = new();
+      foreach (var arg in expr.Arguments)
+        args.Add(Eval(arg));
+
+      if (args.Count != fn.Arity())
+        throw new RuntimeError(expr.Paren, $"Expected {fn.Arity()} arguments but got {args.Count}.");
+
+      return fn.Call(this, args);
     }
 
     public object VisitGroupingExpr(Expr.Grouping expr)
@@ -140,31 +178,29 @@ namespace cslox
 
     public object VisitVariableExpr(Expr.Variable expr)
     {
-      return environment.Get(expr.Name);
+      return Environment.Get(expr.Name);
     }
 
     public object VisitBlockStmt(Stmt.Block stmt)
     {
-      ExecuteBlock(stmt.Statements, new Env(environment));
+      ExecuteBlock(stmt.Statements, new Env(Environment));
       return null;
     }
 
-    private void ExecuteBlock(List<Stmt> statements, Env environment)
+    public void ExecuteBlock(List<Stmt> statements, Env environment)
     {
-      var previous = this.environment;
+      var previous = this.Environment;
 
       try
       {
-        this.environment = environment;
+        this.Environment = environment;
 
         foreach (Stmt statement in statements)
-        {
           Execute(statement);
-        }
       }
       finally
       {
-        this.environment = previous;
+        this.Environment = previous;
       }
     }
 
@@ -174,16 +210,19 @@ namespace cslox
       return null;
     }
 
+    public object VisitFunctionStmt(Stmt.Function stmt)
+    {
+      var fn = new Function(stmt, Environment);
+      Environment.Define(stmt.Name.Lexeme, fn);
+      return null;
+    }
+
     public object VisitIfStmt(Stmt.If stmt)
     {
       if (IsTruthy(Eval(stmt.Condition)))
-      {
         Execute(stmt.ThenBranch);
-      }
       else if (stmt.ElseBranch != null)
-      {
         Execute(stmt.ElseBranch);
-      }
 
       return null;
     }
@@ -195,12 +234,19 @@ namespace cslox
       return null;
     }
 
+    public object VisitReturnStmt(Stmt.Return stmt)
+    {
+      object value = null;
+      if (stmt.Value != null)
+        value = Eval(stmt.Value);
+
+      throw new Return(value);
+    }
+
     public object VisitWhileStmt(Stmt.While stmt)
     {
       while (IsTruthy(Eval(stmt.Condition)))
-      {
         Execute(stmt.Body);
-      }
 
       return null;
     }
@@ -210,23 +256,25 @@ namespace cslox
       object value = null;
 
       if (stmt.Initializer != null)
-      {
         value = Eval(stmt.Initializer);
-      }
 
-      environment.Define(stmt.Name.Lexeme, value);
+      Environment.Define(stmt.Name.Lexeme, value);
       return null;
     }
 
     private static void CheckNumberOperand(Token op, object right)
     {
-      if (right is double) return;
+      if (right is double)
+        return;
+
       throw new RuntimeError(op, "Operand must be a number.");
     }
 
     private static void CheckNumberOperands(Token op, object left, object right)
     {
-      if (right is double && right is double) return;
+      if (right is double && right is double)
+        return;
+
       throw new RuntimeError(op, "Operands must be a number.");
     }
 
@@ -237,19 +285,23 @@ namespace cslox
 
     private static bool IsTruthy(object o)
     {
-      if (o == null) return false;
-      if (o is bool boolean) return boolean;
+      if (o == null)
+        return false;
+
+      if (o is bool boolean)
+        return boolean;
 
       return true;
     }
 
     private static bool IsEqual(object left, object right)
     {
-      if (left == null && right == null) return true;
-      if (left == null) return false;
+      if (left == null && right == null)
+        return true;
+      if (left == null)
+        return false;
 
       return left.Equals(right);
     }
-
   }
 }

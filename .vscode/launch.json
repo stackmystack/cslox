@@ -12,7 +12,7 @@
       // If you have changed target frameworks, make sure to update the program path.
       "program": "${workspaceFolder}/cslox/bin/Debug/net5.0/cslox.dll",
       "args": [
-        "lox_scripts\\blocks.lox"
+        "lox_scripts\\functions.lox"
       ],
       "cwd": "${workspaceFolder}",
       // For more information about the 'console' field, see https://aka.ms/VSCode-CS-LaunchJson-Console

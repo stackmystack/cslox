@@ -9,8 +9,10 @@ namespace cslox.AST
         {
             R VisitBlockStmt(Block stmt);
             R VisitExpressionStmt(Expression stmt);
+            R VisitFunctionStmt(Function stmt);
             R VisitIfStmt(If stmt);
             R VisitPrintStmt(Print stmt);
+            R VisitReturnStmt(Return stmt);
             R VisitVarStmt(Var stmt);
             R VisitWhileStmt(While stmt);
         }
@@ -41,6 +43,24 @@ namespace cslox.AST
             }
 
             public Expr Expr { get; }
+        }
+        public class Function : Stmt
+        {
+            public Function(Token name, List<Token> parameters, List<Stmt> body)
+            {
+                Name = name;
+                Parameters = parameters;
+                Body = body;
+            }
+
+            public override R Accept<R>(IVisitor<R> visitor)
+            {
+                 return visitor.VisitFunctionStmt(this);
+            }
+
+            public Token Name { get; }
+            public List<Token> Parameters { get; }
+            public List<Stmt> Body { get; }
         }
         public class If : Stmt
         {
@@ -73,6 +93,22 @@ namespace cslox.AST
             }
 
             public Expr Expr { get; }
+        }
+        public class Return : Stmt
+        {
+            public Return(Token keyword, Expr value)
+            {
+                Keyword = keyword;
+                Value = value;
+            }
+
+            public override R Accept<R>(IVisitor<R> visitor)
+            {
+                 return visitor.VisitReturnStmt(this);
+            }
+
+            public Token Keyword { get; }
+            public Expr Value { get; }
         }
         public class Var : Stmt
         {

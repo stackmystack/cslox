@@ -21,9 +21,7 @@ namespace cslox
     public void Define(string name, object value)
     {
       if (Values.ContainsKey(name))
-      {
         Values.Remove(name);
-      }
 
       Values.Add(name, value);
     }
@@ -33,14 +31,10 @@ namespace cslox
       var lexeme = name.Lexeme;
 
       if (Values.ContainsKey(lexeme))
-      {
         return Values[lexeme];
-      }
 
       if (Enclosing != null)
-      {
         return Enclosing.Get(name);
-      }
 
       throw new RuntimeError(name, "Undefined variable '" + lexeme + "'.");
     }

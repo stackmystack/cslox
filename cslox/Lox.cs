@@ -6,8 +6,8 @@ namespace cslox
 {
   class Lox
   {
-    private static bool hadError = false;
-    private static bool hadRuntimeError = false;
+    private static bool HadError = false;
+    private static bool HadRuntimeError = false;
 
     private static readonly Interpreter interpreter = new();
 
@@ -20,8 +20,8 @@ namespace cslox
 
     public static void RuntimeError(RuntimeError e)
     {
-      Console.Error.WriteLine(e.Message + "\n [line " + e.Token + "]");
-      hadRuntimeError = true;
+      Console.Error.WriteLine($"[line {e.Token.Line}] {e.Message}");
+      HadRuntimeError = true;
     }
 
     static void RunFile(string path)
@@ -29,9 +29,9 @@ namespace cslox
       var text = File.ReadAllText(path, Encoding.UTF8);
       Run(text);
 
-      if (hadError)
+      if (HadError)
         Environment.Exit(SysExitCode.DATAERR);
-      if (hadRuntimeError)
+      if (HadRuntimeError)
         Environment.Exit(SysExitCode.SOFTWARE);
     }
 
@@ -55,7 +55,7 @@ namespace cslox
       var parser = new Parser(scanner.Tokens);
       var expr = parser.Parse();
 
-      if (hadError) return;
+      if (HadError) return;
 
       interpreter.Interpret(expr);
     }
