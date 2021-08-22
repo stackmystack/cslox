@@ -39,6 +39,23 @@ namespace cslox
       throw new RuntimeError(name, "Undefined variable '" + lexeme + "'.");
     }
 
+    public object GetAt(int distance, string name)
+    {
+      return Ancestor(distance).Values[name];
+    }
+
+    public Env Ancestor(int distance)
+    {
+      Env env = this;
+
+      for (int i = 0; i < distance; i++)
+      {
+        env = env.Enclosing;
+      }
+
+      return env;
+    }
+
     public void Assign(Token name, object value)
     {
       var lexeme = name.Lexeme;
@@ -57,6 +74,11 @@ namespace cslox
       }
 
       throw new RuntimeError(name, "Undefined variable '" + lexeme + "',");
+    }
+
+    public void AssignAt(int distance, Token name, object value)
+    {
+      Ancestor(distance).Values[name.Lexeme] = value;
     }
   }
 }

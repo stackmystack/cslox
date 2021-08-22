@@ -8,6 +8,7 @@ namespace cslox
   {
     public readonly Env Globals;
     private Env Environment;
+    private Dictionary<Expr, int> locals;
 
     private class Clock : ICallable
     {
@@ -28,6 +29,7 @@ namespace cslox
     {
       Globals = new();
       Environment = Globals;
+      locals = new();
 
       Globals.Define("clock", new Clock());
     }
@@ -68,10 +70,25 @@ namespace cslox
       return value.ToString();
     }
 
+    public void Resolve(Expr expr, int depth)
+    {
+      locals.Add(expr, depth);
+    }
+
     public object VisitAssignExpr(Expr.Assign expr)
     {
       object value = Eval(expr.Value);
-      Environment.Assign(expr.Name, value);
+
+      if (!locals.ContainsKey(expr))
+      {
+        Globals.Assign(expr.Name, value);
+      }
+      else
+      {
+        var distance = locals[expr];
+        Environment.AssignAt(distance, expr.Name, value);
+      }
+
       return value;
     }
 
@@ -178,7 +195,18 @@ namespace cslox
 
     public object VisitVariableExpr(Expr.Variable expr)
     {
-      return Environment.Get(expr.Name);
+      return LookupVariable(expr.Name, expr);
+    }
+
+    private object LookupVariable(Token name, Expr expr)
+    {
+      if (!locals.ContainsKey(expr))
+      {
+        return Globals.Get(name);
+      }
+
+      var distance = locals[expr];
+      return Environment.GetAt(distance, name.Lexeme);
     }
 
     public object VisitBlockStmt(Stmt.Block stmt)

@@ -53,11 +53,18 @@ namespace cslox
       scanner.ScanTokens();
 
       var parser = new Parser(scanner.Tokens);
-      var expr = parser.Parse();
+      var statements = parser.Parse();
 
+      // Stop here if we had syntactic error
       if (HadError) return;
 
-      interpreter.Interpret(expr);
+      var resolver = new Resolver(interpreter);
+      resolver.Resolve(statements);
+
+      // Stop if there was a resolution error.
+      if (HadError) return;
+
+      interpreter.Interpret(statements);
     }
 
     static void Main(string[] args)
