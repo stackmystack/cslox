@@ -10,9 +10,12 @@ namespace cslox.AST
             R VisitAssignExpr(Assign expr);
             R VisitBinaryExpr(Binary expr);
             R VisitCallExpr(Call expr);
+            R VisitGetExpr(Get expr);
             R VisitGroupingExpr(Grouping expr);
             R VisitLiteralExpr(Literal expr);
             R VisitLogicalExpr(Logical expr);
+            R VisitSetExpr(Set expr);
+            R VisitThisExpr(This expr);
             R VisitUnaryExpr(Unary expr);
             R VisitVariableExpr(Variable expr);
         }
@@ -68,6 +71,22 @@ namespace cslox.AST
             public Token Paren { get; }
             public List<Expr> Arguments { get; }
         }
+        public class Get : Expr
+        {
+            public Get(Expr obj, Token name)
+            {
+                Obj = obj;
+                Name = name;
+            }
+
+            public override R Accept<R>(IVisitor<R> visitor)
+            {
+                 return visitor.VisitGetExpr(this);
+            }
+
+            public Expr Obj { get; }
+            public Token Name { get; }
+        }
         public class Grouping : Expr
         {
             public Grouping(Expr expression)
@@ -113,6 +132,38 @@ namespace cslox.AST
             public Expr Left { get; }
             public Token Op { get; }
             public Expr Right { get; }
+        }
+        public class Set : Expr
+        {
+            public Set(Expr obj, Token name, Expr value)
+            {
+                Obj = obj;
+                Name = name;
+                Value = value;
+            }
+
+            public override R Accept<R>(IVisitor<R> visitor)
+            {
+                 return visitor.VisitSetExpr(this);
+            }
+
+            public Expr Obj { get; }
+            public Token Name { get; }
+            public Expr Value { get; }
+        }
+        public class This : Expr
+        {
+            public This(Token keyword)
+            {
+                Keyword = keyword;
+            }
+
+            public override R Accept<R>(IVisitor<R> visitor)
+            {
+                 return visitor.VisitThisExpr(this);
+            }
+
+            public Token Keyword { get; }
         }
         public class Unary : Expr
         {

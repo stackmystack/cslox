@@ -78,5 +78,20 @@ namespace cslox.AST
 
       return sb.ToString();
     }
+
+    public string VisitGetExpr(Expr.Get expr)
+    {
+      return Paren(expr.Name.Lexeme, new() { expr.Obj });
+    }
+
+    public string VisitSetExpr(Expr.Set expr)
+    {
+      return Paren(expr.Name.Lexeme, new() { expr.Obj, expr.Value });
+    }
+
+    public string VisitThisExpr(Expr.This expr)
+    {
+      return Paren(expr.Keyword.Lexeme, new() { });
+    }
   }
 }

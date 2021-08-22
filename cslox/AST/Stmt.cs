@@ -8,6 +8,7 @@ namespace cslox.AST
         public interface IVisitor<R>
         {
             R VisitBlockStmt(Block stmt);
+            R VisitClassStmt(Class stmt);
             R VisitExpressionStmt(Expression stmt);
             R VisitFunctionStmt(Function stmt);
             R VisitIfStmt(If stmt);
@@ -29,6 +30,22 @@ namespace cslox.AST
             }
 
             public List<Stmt> Statements { get; }
+        }
+        public class Class : Stmt
+        {
+            public Class(Token name, List<Stmt.Function> methods)
+            {
+                Name = name;
+                Methods = methods;
+            }
+
+            public override R Accept<R>(IVisitor<R> visitor)
+            {
+                 return visitor.VisitClassStmt(this);
+            }
+
+            public Token Name { get; }
+            public List<Stmt.Function> Methods { get; }
         }
         public class Expression : Stmt
         {

@@ -30,6 +30,8 @@ namespace cslox
     {
       try
       {
+        if (Match(TokenType.CLASS))
+          return ClassDeclaration();
         if (Match(TokenType.FUN))
           return Function("function");
         if (Match(TokenType.VAR))
@@ -84,6 +86,23 @@ namespace cslox
 
       Consume(TokenType.SEMICOLON, "Expect ';' after variable declaration.");
       return new Stmt.Var(name, initializer);
+    }
+
+    private Stmt ClassDeclaration()
+    {
+      var name = Consume(TokenType.IDENTIFIER, "Expect class name.");
+      Consume(TokenType.BRACE_LEFT, "Expect '{' before class body.");
+
+      var methods = new List<Stmt.Function>();
+
+      while (!Check(TokenType.BRACE_RIGHT) && !IsAtEnd())
+      {
+        methods.Add(Function("method") as Stmt.Function);
+      }
+
+      Consume(TokenType.BRACE_RIGHT, "Expect '}' after class body");
+
+      return new Stmt.Class(name, methods);
     }
 
     private Stmt Statement()
@@ -221,6 +240,10 @@ namespace cslox
           var name = variable.Name;
           return new Expr.Assign(name, value);
         }
+        else if (expr is Expr.Get get)
+        {
+          return new Expr.Set(get.Obj, get.Name, value);
+        }
 
         Err(equals, "Invalid assignment target.");
       }
@@ -338,9 +361,18 @@ namespace cslox
       while (true)
       {
         if (Match(TokenType.PAREN_LEFT))
+        {
           expr = FinishCall(expr);
+        }
+        else if (Match(TokenType.DOT))
+        {
+          var name = Consume(TokenType.IDENTIFIER, "Expect property name after '.' .");
+          expr = new Expr.Get(expr, name);
+        }
         else
+        {
           break;
+        }
       }
 
       return expr;
@@ -374,6 +406,9 @@ namespace cslox
 
       if (MatchAny(new TokenType[] { TokenType.NUMBER, TokenType.STRING }))
         return new Expr.Literal(Previous().Literal);
+
+      if (Match(TokenType.THIS))
+        return new Expr.This(Previous());
 
       if (Match(TokenType.IDENTIFIER))
         return new Expr.Variable(Previous());

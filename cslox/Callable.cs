@@ -12,11 +12,13 @@ namespace cslox
   {
     private readonly Stmt.Function Declaration;
     private readonly Env Closure;
+    private readonly bool IsInit;
 
-    public Function(Stmt.Function declaration, Env closure)
+    public Function(Stmt.Function declaration, Env closure, bool isInit = false)
     {
       Declaration = declaration;
       Closure = closure;
+      IsInit = isInit;
     }
 
     public int Arity()
@@ -37,10 +39,24 @@ namespace cslox
       }
       catch (Return returnValue)
       {
+        if (IsInit)
+        {
+          return Closure.GetAt(0, "this");
+        }
         return returnValue.Value;
       }
 
+      if (IsInit)
+        return Closure.GetAt(0, "this");
+
       return null;
+    }
+
+    public Function Bind(LoxInstance instance)
+    {
+      var env = new Env(Closure);
+      env.Define("this", instance);
+      return new Function(Declaration, env, IsInit);
     }
 
     public override string ToString()

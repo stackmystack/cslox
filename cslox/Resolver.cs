@@ -10,12 +10,21 @@ namespace cslox
     private enum FunctionType
     {
       NONE,
-      FUNCTION
+      FUNCTION,
+      METHOD,
+      INIT
+    }
+
+    private enum ClassType
+    {
+      NONE,
+      CLASS
     }
 
     private readonly Interpreter interpreter;
-    private Stack<Dictionary<string, bool>> scopes;
+    private readonly Stack<Dictionary<string, bool>> scopes;
     private FunctionType CurrentFunctionType = FunctionType.NONE;
+    private ClassType CurrentClassType = ClassType.NONE;
 
     public Resolver(Interpreter interpreter)
     {
@@ -204,6 +213,11 @@ namespace cslox
 
       if (stmt.Value != null)
       {
+        if (CurrentFunctionType == FunctionType.INIT)
+        {
+          Error.Log(stmt.Keyword, "Can't return a value from 'init'.");
+        }
+
         Resolve(stmt.Value);
       }
 
@@ -245,6 +259,59 @@ namespace cslox
     {
       Resolve(stmt.Condition);
       Resolve(stmt.Body);
+      return null;
+    }
+
+    public object VisitClassStmt(Stmt.Class stmt)
+    {
+      var enclosingClass = CurrentClassType;
+      CurrentClassType = ClassType.CLASS;
+
+      Declare(stmt.Name);
+      Define(stmt.Name);
+
+      BeginScope();
+      scopes.Peek()["this"] = true;
+
+      foreach (var method in stmt.Methods)
+      {
+        var declaration = FunctionType.METHOD;
+
+        if (method.Name.Lexeme.Equals("init"))
+        {
+          declaration = FunctionType.INIT;
+        }
+
+        ResolveFunction(method, declaration);
+      }
+
+      EndScope();
+
+      CurrentClassType = enclosingClass;
+
+      return null;
+    }
+
+    public object VisitGetExpr(Expr.Get expr)
+    {
+      return null;
+    }
+
+    public object VisitSetExpr(Expr.Set expr)
+    {
+      Resolve(expr.Value);
+      Resolve(expr.Obj);
+      return null;
+    }
+
+    public object VisitThisExpr(Expr.This expr)
+    {
+      if (CurrentClassType == ClassType.NONE)
+      {
+        Error.Log(expr.Keyword, "Can't use 'this' outside of a class.");
+      }
+
+      ResolveLocal(expr, expr.Keyword);
       return null;
     }
   }

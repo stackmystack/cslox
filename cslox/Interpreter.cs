@@ -331,5 +331,55 @@ namespace cslox
 
       return left.Equals(right);
     }
+
+    public object VisitClassStmt(Stmt.Class stmt)
+    {
+      Environment.Define(stmt.Name.Lexeme, null);
+
+      var methods = new Dictionary<string, Function>();
+
+      foreach (var method in stmt.Methods)
+      {
+        var function = new Function(method, Environment,
+                                  method.Name.Lexeme.Equals("init"));
+        methods[method.Name.Lexeme] = function;
+      }
+
+      var klass = new LoxClass(stmt.Name.Lexeme, methods);
+      Environment.Assign(stmt.Name, klass);
+      return null;
+    }
+
+    public object VisitGetExpr(Expr.Get expr)
+    {
+      var obj = Eval(expr.Obj);
+
+      if (obj is LoxInstance instance)
+      {
+        return instance.Get(expr.Name);
+      }
+
+      throw new RuntimeError(expr.Name, "Only instaces have properties");
+    }
+
+    public object VisitSetExpr(Expr.Set expr)
+    {
+      var obj = Eval(expr.Obj);
+
+      if (obj is not LoxInstance)
+      {
+        throw new RuntimeError(expr.Name, "Only instances have fields");
+      }
+
+      var value = Eval(expr.Value);
+      var instance = (LoxInstance)obj;
+      instance.Set(expr.Name, value);
+      return value;
+    }
+
+    public object VisitThisExpr(Expr.This expr)
+    {
+      return LookupVariable(expr.Keyword, expr);
+    }
   }
 }

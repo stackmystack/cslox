@@ -1,0 +1,26 @@
+class DevonshireCream {
+  serveOn() {
+    return "Scones";
+  }
+}
+
+var d = DevonshireCream();
+d.name = "hehe";
+print d.name;
+
+
+class Bacon {
+  init() {
+    this.name = "Bacon!!!!";
+  }
+
+  eat() {
+    print "Crunch crunch crunch!";
+  }
+}
+
+Bacon().eat();
+
+var baykohn = Bacon();
+
+print baykohn.name;
