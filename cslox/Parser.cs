@@ -91,6 +91,14 @@ namespace cslox
     private Stmt ClassDeclaration()
     {
       var name = Consume(TokenType.IDENTIFIER, "Expect class name.");
+
+      Expr.Variable superclass = null;
+      if (Match(TokenType.LT))
+      {
+        Consume(TokenType.IDENTIFIER, "Expect superclass name.");
+        superclass = new Expr.Variable(Previous());
+      }
+
       Consume(TokenType.BRACE_LEFT, "Expect '{' before class body.");
 
       var methods = new List<Stmt.Function>();
@@ -102,7 +110,7 @@ namespace cslox
 
       Consume(TokenType.BRACE_RIGHT, "Expect '}' after class body");
 
-      return new Stmt.Class(name, methods);
+      return new Stmt.Class(name, superclass, methods);
     }
 
     private Stmt Statement()
@@ -406,6 +414,14 @@ namespace cslox
 
       if (MatchAny(new TokenType[] { TokenType.NUMBER, TokenType.STRING }))
         return new Expr.Literal(Previous().Literal);
+
+      if (Match(TokenType.SUPER))
+      {
+        var keyword = Previous();
+        Consume(TokenType.DOT, "Expect a '.' after 'super' .");
+        var method = Consume(TokenType.IDENTIFIER, "Expect superclass method name.");
+        return new Expr.Super(keyword, method);
+      }
 
       if (Match(TokenType.THIS))
         return new Expr.This(Previous());

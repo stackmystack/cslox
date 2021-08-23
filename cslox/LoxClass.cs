@@ -6,17 +6,29 @@ namespace cslox
   class LoxClass : ICallable
   {
     public readonly string Name;
+    public readonly LoxClass SuperClass;
     public readonly Dictionary<string, Function> methods;
 
-    public LoxClass(string name, Dictionary<string, Function> methods)
+    public LoxClass(string name, LoxClass superclass, Dictionary<string, Function> methods)
     {
       this.Name = name;
+      this.SuperClass = superclass;
       this.methods = methods;
     }
 
     public Function FindMethod(string name)
     {
-      return this.methods.GetValueOrDefault(name, null);
+      if (methods.ContainsKey(name))
+      {
+        return methods[name];
+      }
+
+      if (SuperClass != null)
+      {
+        return SuperClass.FindMethod(name);
+      }
+
+      return null;
     }
 
     public int Arity()

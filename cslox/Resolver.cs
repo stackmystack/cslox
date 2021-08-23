@@ -18,7 +18,8 @@ namespace cslox
     private enum ClassType
     {
       NONE,
-      CLASS
+      CLASS,
+      SUBCLASS
     }
 
     private readonly Interpreter interpreter;
@@ -270,6 +271,24 @@ namespace cslox
       Declare(stmt.Name);
       Define(stmt.Name);
 
+      if (stmt.Superclass != null &&
+          stmt.Name.Lexeme.Equals(stmt.Superclass.Name.Lexeme))
+      {
+        Error.Log(stmt.Superclass.Name, "A class can't inherit from itself.");
+      }
+
+      if (stmt.Superclass != null)
+      {
+        CurrentClassType = ClassType.SUBCLASS;
+        Resolve(stmt.Superclass);
+      }
+
+      if (stmt.Superclass != null)
+      {
+        BeginScope();
+        scopes.Peek()["super"] = true;
+      }
+
       BeginScope();
       scopes.Peek()["this"] = true;
 
@@ -286,6 +305,11 @@ namespace cslox
       }
 
       EndScope();
+
+      if (stmt.Superclass != null)
+      {
+        EndScope();
+      }
 
       CurrentClassType = enclosingClass;
 
@@ -309,6 +333,21 @@ namespace cslox
       if (CurrentClassType == ClassType.NONE)
       {
         Error.Log(expr.Keyword, "Can't use 'this' outside of a class.");
+      }
+
+      ResolveLocal(expr, expr.Keyword);
+      return null;
+    }
+
+    public object VisitSuperExpr(Expr.Super expr)
+    {
+      if (CurrentClassType == ClassType.NONE)
+      {
+        Error.Log(expr.Keyword, "Can't use 'super' outside of a class.");
+      }
+      else if (CurrentClassType != ClassType.SUBCLASS)
+      {
+        Error.Log(expr.Keyword, "Can't use 'super' in a class with no superclass.");
       }
 
       ResolveLocal(expr, expr.Keyword);

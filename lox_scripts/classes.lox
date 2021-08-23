@@ -24,3 +24,12 @@ Bacon().eat();
 var baykohn = Bacon();
 
 print baykohn.name;
+
+
+// var NotAClass = "I am totally not a class";
+
+class Subclass < Bacon {}
+
+var subinstance = Subclass();
+
+subinstance.eat();

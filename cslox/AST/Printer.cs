@@ -93,5 +93,10 @@ namespace cslox.AST
     {
       return Paren(expr.Keyword.Lexeme, new() { });
     }
+
+    public string VisitSuperExpr(Expr.Super expr)
+    {
+      return Paren(expr.Keyword.Lexeme, new() { });
+    }
   }
 }

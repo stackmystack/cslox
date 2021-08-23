@@ -5,7 +5,7 @@ namespace cslox
 {
   public class Env
   {
-    private readonly Env Enclosing;
+    public Env Enclosing { get; set; }
     private readonly Dictionary<string, object> Values;
 
     public Env() : this(null)
